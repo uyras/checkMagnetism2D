@@ -8,34 +8,40 @@ using namespace std;
 int main()
 {
     config::Instance()->srand(time(NULL));
-    PartArray *sys;
+    config::Instance()->set2D();
 
-    for (int i=0;i<100;i++){
-        int n=20;//количество частиц в линейке
-        double space = config::Instance()->partR*15.;//расстояние между центрами частиц
-        sys = new PartArray((double)n*space,1,1);//размер образца 4 радиуса, или 2 диаметра
+    for (int j=0;j<100;j++){
+        PartArray *sys;
+
+        int n=3;//количество частиц в линейке
+        double space = config::Instance()->partR*4.;//расстояние между центрами частиц
+
+        sys = new PartArray((double)n*space,(double)n*space,1);//размер образца 4 радиуса, или 2 диаметра
 
         //бросаем частицы в шахматном порядке на линию
         sys->dropChain(space);
         StateMachineFree oldState(sys->state);
+        sys->save("1.dat");
 
-        //разносим их до определенного уровня влево либо вправо. Максимум: (расстояние между частицами/2)-радиус
+        //разносим их до определенного уровня в любую сторону. Максимум: (расстояние между частицами/2)-радиус
         double d=space/2.-config::Instance()->partR;
-        d/=2.;
+        //d*=0.05;
+        Vect dir; //направление, в которое двигать частицу.
         for(int i=0;i<sys->count();i++){
-            if ((double)config::Instance()->rand() / (double)config::Instance()->rand_max>0.5){
-                sys->parts[i]->pos.x+=d;
-            } else {
-                sys->parts[i]->pos.x-=d;
-            }
+            double longitude = ((double)config::Instance()->rand()/(double)config::Instance()->rand_max) * 2. * M_PI;
+            dir.x = d * cos(longitude);
+            dir.y = d * sin(longitude);
+            dir.z = 0;
+            sys->parts[i]->pos += dir;
         }
 
-        sys->setToGroundState();
-        if (!(oldState==sys->state))
-            cout<<"found anomaly!"<<endl;
 
-        //замеряем уровень намагниченности, при аномалиях должен быть не 0 (для четногочисла частиц) и не 1 (для нечетного числа частиц)
-        cout<<sys->M().length()<<endl;
+        sys->setToGroundState();
+        if (!(oldState==sys->state)){
+            cout<<"found anomaly!"<<endl;
+            sys->state->draw();
+            sys->save("2.dat");
+        }
     }
 
 
