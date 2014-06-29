@@ -6,6 +6,35 @@
 
 using namespace std;
 
+void moveSystemPosRandomly(PartArray* sys, double d){
+    Vect dir; //направление, в которое двигать частицу.
+    for(int i=0;i<sys->count();i++){
+        double longitude = ((double)config::Instance()->rand()/(double)config::Instance()->rand_max) * 2. * M_PI;
+        dir.x = d * cos(longitude);
+        dir.y = d * sin(longitude);
+        dir.z = 0;
+        sys->parts[i]->pos += dir;
+    }
+}
+
+void moveSystemMRandomly(PartArray* sys, double fi){
+    double side = 1.;
+    double oldFi;
+
+    for(int i=0;i<sys->count();i++){
+        double oldLen = sys->parts[i]->m.length();
+        if ((double)config::Instance()->rand()/(double)config::Instance()->rand_max>0.5)
+            side = -1.;
+        else
+            side = 1.;
+        oldFi = sys->parts[i]->m.angle();
+        double longitude = oldFi+(fi*side);
+        sys->parts[i]->m.x = oldLen * cos(longitude);
+        sys->parts[i]->m.y = oldLen * sin(longitude);
+        sys->parts[i]->m.z = 0;
+    }
+}
+
 int main(int argc, char** argv)
 {
     config::Instance()->srand(time(NULL));
@@ -15,6 +44,8 @@ int main(int argc, char** argv)
     MPI_Init (&argc, &argv);	/* starts MPI */
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    config::Instance()->srand(time(NULL)+rank);
 
 
     PartArray *sys, *example;
@@ -29,23 +60,13 @@ int main(int argc, char** argv)
     StateMachineFree oldState(example->state);
 
     double dMax = space/2.-config::Instance()->partR;
-    for (double d=0; d<=dMax; d+=dMax/100.){
+    for (double d=dMax; d<=dMax; d+=dMax/100.){
         int anomCount=0;
         for (int j=0;j<100;j++){
             sys = example->copy();
 
-            //разносим их до определенного уровня в любую сторону. Максимум: (расстояние между частицами/2)-радиус
+            moveSystemMRandomly(sys,0.3);
 
-            Vect dir; //направление, в которое двигать частицу.
-            for(int i=0;i<sys->count();i++){
-                double longitude = ((double)config::Instance()->rand()/(double)config::Instance()->rand_max) * 2. * M_PI;
-                dir.x = d * cos(longitude);
-                dir.y = d * sin(longitude);
-                dir.z = 0;
-                sys->parts[i]->pos += dir;
-            }
-
-            double EBeforeGS=sys->calcEnergy1();
             sys->setToGroundState();
             if (!(oldState==sys->state)){
                 anomCount++;
@@ -56,7 +77,6 @@ int main(int argc, char** argv)
     }
 
     cout << "finish!" << endl;
-    cin.get();
     return 0;
 }
 
