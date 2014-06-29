@@ -2,13 +2,20 @@
 #include <ctime>
 #include "config.h"
 #include "PartArray.h"
+#include "mpi.h"
 
 using namespace std;
 
-int main()
+int main(int argc, char** argv)
 {
     config::Instance()->srand(time(NULL));
     config::Instance()->set2D();
+    int rank, size;
+
+    MPI_Init (&argc, &argv);	/* starts MPI */
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
 
     PartArray *sys, *example;
 
@@ -49,6 +56,7 @@ int main()
     }
 
     cout << "finish!" << endl;
+    cin.get();
     return 0;
 }
 
