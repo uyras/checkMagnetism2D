@@ -10,7 +10,6 @@ int main()
     config::Instance()->srand(time(NULL));
     config::Instance()->set2D();
 
-
     PartArray *sys, *example;
 
     int n=3,m=5;//количество частиц в линейке
@@ -29,6 +28,7 @@ int main()
             sys = example->copy();
 
             //разносим их до определенного уровня в любую сторону. Максимум: (расстояние между частицами/2)-радиус
+
             Vect dir; //направление, в которое двигать частицу.
             for(int i=0;i<sys->count();i++){
                 double longitude = ((double)config::Instance()->rand()/(double)config::Instance()->rand_max) * 2. * M_PI;
@@ -47,7 +47,6 @@ int main()
         }
         cout<<"d = "<<d<<"; c = "<<anomCount<<endl;
     }
-
 
     cout << "finish!" << endl;
     return 0;
