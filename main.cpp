@@ -44,9 +44,12 @@ int main(int argc, char** argv)
     MPI_Init (&argc, &argv);	/* starts MPI */
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
+    if (size==1 || (size-1)%100!=0){
+        cout<<"invalid process count"<<endl;
+        return;
+    }
 
     config::Instance()->srand(time(NULL)+rank);
-
 
     PartArray *sys, *example;
 
@@ -59,8 +62,15 @@ int main(int argc, char** argv)
     example->dropChain(space);
     StateMachineFree oldState(example->state);
 
+    //в первом потоке распределяем по подпроцессам задачи. В задаче2 параметра: d и fi.
+    if (rank==0){
+        for (double d=0.; d<=dMax; d+=dMax/100.){
+            MPI_
+        }
+    }
+
     double dMax = space/2.-config::Instance()->partR;
-    for (double d=dMax; d<=dMax; d+=dMax/100.){
+    for (double d=0.; d<=dMax; d+=dMax/100.){
         int anomCount=0;
         for (int j=0;j<100;j++){
             sys = example->copy();
@@ -77,6 +87,7 @@ int main(int argc, char** argv)
     }
 
     cout << "finish!" << endl;
+    MPI_Finalize();
     return 0;
 }
 
