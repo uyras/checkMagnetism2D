@@ -37,32 +37,50 @@ void moveSystemMRandomly(PartArray* sys, double fi){
 
 int main(int argc, char** argv)
 {
-    config::Instance()->srand(time(NULL));
-    config::Instance()->set2D();
-    int rank, size;
-
     MPI_Init (&argc, &argv);	/* starts MPI */
+    int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
-    if (size==1 || (size-1)%100!=0){
+    if (size==1){
         cout<<"invalid process count"<<endl;
-        return;
+        MPI_Finalize();
+        return 0;
     }
+    cout<<rank<<": start MPI process"<<endl;
 
-    config::Instance()->srand(time(NULL)+rank);
+    config::Instance()->srand(time(NULL));
+    config::Instance()->set2D();
 
-    int a[100];
-    MPI_Win window;
-    MPI_Win_create(*a,sizeof(int)*100,sizeof(int),MPI_INFO_NULL,MPI_COMM_WORLD,*win);
+    config::Instance()->srand(time(NULL)+rank*size);config::Instance()->rand();
+    int exitCode = -1;
 
-    if (rank==0){
-        int i=100;
-        MPI_Put(*i,1,MPI_INT,)
+    if (rank!=0){
+        int messageCount = (double)config::Instance()->rand()/(double)config::Instance()->rand_max * 10.;
+        cout<<rank<<": it will sended "<<messageCount<<" messages"<<endl;
+        //передаем случайное количество случайных сообщений
+        for (int i=0;i<messageCount;i++){
+            int message = (double)config::Instance()->rand()/(double)config::Instance()->rand_max * 900 + 100;
+            MPI_Send(&message,1,MPI_INT,0,0,MPI_COMM_WORLD);
+            cout<<rank<<": send code "<<message<<endl;
+        }
+
+        //выходим
+        MPI_Send(&exitCode,1,MPI_INT,0,0,MPI_COMM_WORLD);
+        cout<<rank<<": send code "<<exitCode<<endl;
+
     } else {
-
+        int recv = 0;
+        MPI_Status stat;
+        int finished=0;
+        do{
+            MPI_Recv(&recv,1,MPI_INT,MPI_ANY_SOURCE,0,MPI_COMM_WORLD,&stat);
+            cout<<rank<<": recieve code "<<recv<<" from "<<stat.MPI_SOURCE<<endl;
+            if (recv==exitCode)
+                finished++;
+        } while (finished<(size-1));
+        cout<<rank<<": "<<"program may finish"<<endl;
     }
 
-    MPI_Win_free(*window);
     /*PartArray *sys, *example;
 
     int n=3,m=5;//количество частиц в линейке
