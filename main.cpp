@@ -51,7 +51,19 @@ int main(int argc, char** argv)
 
     config::Instance()->srand(time(NULL)+rank);
 
-    PartArray *sys, *example;
+    int a[100];
+    MPI_Win window;
+    MPI_Win_create(*a,sizeof(int)*100,sizeof(int),MPI_INFO_NULL,MPI_COMM_WORLD,*win);
+
+    if (rank==0){
+        int i=100;
+        MPI_Put(*i,1,MPI_INT,)
+    } else {
+
+    }
+
+    MPI_Win_free(*window);
+    /*PartArray *sys, *example;
 
     int n=3,m=5;//количество частиц в линейке
     double space = config::Instance()->partR*4.;//расстояние между центрами частиц
@@ -86,7 +98,7 @@ int main(int argc, char** argv)
         cout<<"d = "<<d<<"; c = "<<anomCount<<endl;
     }
 
-    cout << "finish!" << endl;
+    cout << "finish!" << endl;*/
     MPI_Finalize();
     return 0;
 }
