@@ -13,4 +13,5 @@ INCLUDEPATH += "C:\Program Files\Microsoft MPI\Inc"
 
 OTHER_FILES += \
     README.md \
-    .gitignore
+    .gitignore \
+    checkMagnetism2DRes_3x7.dat
